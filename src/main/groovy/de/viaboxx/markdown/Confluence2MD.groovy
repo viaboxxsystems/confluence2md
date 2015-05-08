@@ -118,9 +118,9 @@ class Confluence2MD extends ConfluenceParser implements Walker {
                     true
                 },
                 "AC:LINK": { node ->
-                    // <ac:link><ri:page ri:content-title=\"Nachricht - PrinterSignalState\" />
-                    // <ac:link><ac:link-body>PrinterSignalState</ac:link-body></ac:link>
-                    // <ac:link><ri:attachment ri:filename=\"Anwendungsüberwachung_DHL_NL.xls\" /></ac:link>
+                    // <ac:link><ri:page ri:content-title=\"Nachricht - Example\" />
+                    // <ac:link><ac:link-body>Example</ac:link-body></ac:link>
+                    // <ac:link><ri:attachment ri:filename=\"Monitoring.xls\" /></ac:link>
                     String linkText = null
                     String linkUrl = null
                     def child
