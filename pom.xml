@@ -33,9 +33,9 @@
         <groovy-eclipse-batch>2.3.4-01</groovy-eclipse-batch>
     </properties>
     <scm>
-        <connection>scm:git:git@bitbucket.org:viaboxx/markdown-documentation.git</connection>
-        <url>https://git.viaboxxsystems.de/gitweb/?p=viaboxx/markdown-documentation.git;a=summary</url>
-        <developerConnection>scm:git:git@bitbucket.org:viaboxx/markdown-documentation.git</developerConnection>
+        <connection>scm:git:https://github.com/viaboxxsystems/confluence2md.git</connection>
+        <url>https://github.com/viaboxxsystems/confluence2md.git;a=summary</url>
+        <developerConnection>scm:git:https://github.com/viaboxxsystems/confluence2md.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
     <developers>
