@@ -214,14 +214,16 @@ class Uml2Confluence extends ConfluenceParser {
     protected void post(UmlAttachment att, String uri) {
         FileBody bin = new FileBody(att.file)
         HttpEntity reqEntity = MultipartEntityBuilder.create()
-                .addPart("file", bin) // The name of the multipart/form-data parameter that contains attachments must be "file"
+                .addPart("file",
+                bin) // The name of the multipart/form-data parameter that contains attachments must be "file"
                 .addTextBody("comment", att.md5)
 //                .addTextBody("minorEdit", "true")
                 .build()
         log("POST $att.file.name to $uri")
         HttpUriRequest post = RequestBuilder.post()
                 .setUri(uri)
-                .addHeader("X-Atlassian-Token", "nocheck") // you must submit a header of X-Atlassian-Token: nocheck with the request, otherwise it will be blocked.
+                .addHeader("X-Atlassian-Token",
+                "nocheck") // you must submit a header of X-Atlassian-Token: nocheck with the request, otherwise it will be blocked.
                 .setEntity(reqEntity)
                 .build()
 
@@ -259,7 +261,8 @@ class Uml2Confluence extends ConfluenceParser {
         if (userPassword) {
             CredentialsProvider credsProvider = new BasicCredentialsProvider()
 //        credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(user, password))
-            credsProvider.setCredentials(new AuthScope(target.getHostName(), target.getPort()), new UsernamePasswordCredentials(user, password))
+            credsProvider.setCredentials(new AuthScope(target.getHostName(), target.getPort()),
+                    new UsernamePasswordCredentials(user, password))
             builder.setDefaultCredentialsProvider(credsProvider)
         }
         CloseableHttpClient client = builder.build()
@@ -275,7 +278,7 @@ class Uml2Confluence extends ConfluenceParser {
         sections.clear()
         super.parsePage(page)
         if (updatePage) {
-            def newBody = computeModifiedContent(page.body.storage.value)
+            def newBody = computeModifiedContent2(page.body.storage.value)
             if (newBody != page.body.storage.value) {
                 // update Page Content
                 updatePageContent(page, newBody)
@@ -330,7 +333,8 @@ class Uml2Confluence extends ConfluenceParser {
                 before(newContent, "<ac:structured-macro ac:name=\"code\">", each.sectionNumber)
                         .insert("<ac:structured-macro ac:name=\"section\"><ac:rich-text-body>")
                 if (!each.imageFile) {
-                    after(newContent, "</ac:plain-text-body></ac:structured-macro>", each.sectionNumber).insert("</ac:rich-text-body></ac:structured-macro>")
+                    after(newContent, "</ac:plain-text-body></ac:structured-macro>", each.sectionNumber).
+                            insert("</ac:rich-text-body></ac:structured-macro>")
                 } else {
                     def instruction = after(newContent, "</ac:image></p>", each.sectionNumber)
                     if (!instruction.condition) {
@@ -349,6 +353,54 @@ class Uml2Confluence extends ConfluenceParser {
                             "<ri:attachment ri:filename=\"${each.umlFile.name}\" /></ac:image></p>")
                 } else {
                     after(newContent, "</ac:plain-text-body></ac:structured-macro>", each.sectionNumber)
+                            .insert("<p><ac:image>" +
+                            "<ri:attachment ri:filename=\"${each.umlFile.name}\" /></ac:image></p>")
+                }
+            } else {
+                log("${each} - 'image' already in page $currentPage.id")
+            }
+        }
+        //log("NEW BODY: \n$newContent")
+        return newContent.toString()
+    }
+
+    /**
+     * TODO RSt - this approach is still heuristic + experimental! Can corrupt the page!
+     * @param content
+     * @return
+     */
+    private String computeModifiedContent2(String content) {
+        StringBuilder newContent = new StringBuilder(content)
+        //log("OLD BODY: \n$newContent")
+        sections.each { Section each ->
+            if (!each.exists) {
+                before(newContent, "<ac:macro ac:name=\"plantuml\">", each.sectionNumber)
+                        .insert("<ac:structured-macro ac:name=\"section\"><ac:rich-text-body>")
+                before(newContent, "<ac:macro ac:name=\"plantuml\">", each.sectionNumber)
+                        .replaceWith("<ac:structured-macro ac:name=\"code\">");
+                if (!each.imageFile) {
+                    after(newContent, "</ac:plain-text-body></ac:macro>", each.sectionNumber).
+                            insert("</ac:rich-text-body></ac:structured-macro>")
+                    before(newContent, "</ac:plain-text-body></ac:macro>", each.sectionNumber)
+                            .replaceWith("</ac:plain-text-body></ac:structured-macro>");
+                } else {
+                    def instruction = after(newContent, "</ac:image></p>", each.sectionNumber)
+                    if (!instruction.condition) {
+                        instruction = after(newContent, "</ac:image>", each.sectionNumber)
+                    }
+                    instruction.insert("</ac:rich-text-body></ac:structured-macro>")
+                }
+            } else {
+                log("${each} - 'section' already in page $currentPage.id")
+            }
+            if (!each.imageFile && each.umlFile) {
+                // insert image from umlFile
+                if (each.title) {
+                    after(newContent, "</ac:plain-text-body></ac:macro>", each.sectionNumber)
+                            .insert("<p><ac:image ac:alt=\"${each.title}\" ac:title=\"${each.title}\">" +
+                            "<ri:attachment ri:filename=\"${each.umlFile.name}\" /></ac:image></p>")
+                } else {
+                    after(newContent, "</ac:plain-text-body></ac:macro>", each.sectionNumber)
                             .insert("<p><ac:image>" +
                             "<ri:attachment ri:filename=\"${each.umlFile.name}\" /></ac:image></p>")
                 }
@@ -386,6 +438,7 @@ class Uml2Confluence extends ConfluenceParser {
         }
         builder.buf = buf
         builder.condition = from >= 0 && from < buf.length()
+        builder.length = search.length();
         builder.position = from
         return builder
     }
@@ -393,14 +446,24 @@ class Uml2Confluence extends ConfluenceParser {
     class InstructionBuilder {
 
         int position
+        int length
         StringBuilder buf
         boolean condition
 
-        void insert(String part) {
+        InstructionBuilder insert(String part) {
             if (condition) {
                 buf.insert(position, part)
                 log("Insert $part into page $currentPage.id")
             }
+            return this
+        }
+
+        InstructionBuilder replaceWith(String part) {
+            if (condition) {
+                buf.replace(position, position + length, part)
+                log("Insert $part into page $currentPage.id")
+            }
+            return this
         }
     }
 
