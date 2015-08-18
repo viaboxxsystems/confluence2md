@@ -65,31 +65,31 @@ class Confluence2MD extends ConfluenceParser implements Walker {
         caching = true
 
         tagHandlers = [
-                "H1": { node ->
+                "H1"                 : { node ->
                     writeHeader(2, node)
                     return true
                 },
-                "H2": { node ->
+                "H2"                 : { node ->
                     writeHeader(3, node)
                     return true
                 },
-                "H3": { node ->
+                "H3"                 : { node ->
                     writeHeader(4, node)
                     true
                 },
-                "H4": { node ->
+                "H4"                 : { node ->
                     writeHeader(5, node)
                     true
                 },
-                "H5": { node ->
+                "H5"                 : { node ->
                     writeHeader(6, node)
                     true
                 },
-                "H6": { node ->
+                "H6"                 : { node ->
                     writeHeader(7, node)
                     true
                 },
-                "P": { node ->
+                "P"                  : { node ->
                     if (mode != Mode.Table && listIndent == 0) {
                         assertBlankLine()
                     }
@@ -97,7 +97,7 @@ class Confluence2MD extends ConfluenceParser implements Walker {
                     writeln()
                     true
                 },
-                "A": { node ->
+                "A"                  : { node ->
                     def href = node.attributes()["href"]
                     if (href) {
                         writeRaw("[")
@@ -117,7 +117,22 @@ class Confluence2MD extends ConfluenceParser implements Walker {
                     } // else <a name=\"BACKUP-FILE\"></a> --> anchor not yet supported
                     true
                 },
-                "AC:LINK": { node ->
+                "AC:TASK-ID"     : { node ->
+                    true
+
+                },
+                "AC:TASK-STATUS"     : { node ->
+                    writeRaw("[ ] ");
+                    true
+
+                },
+                "AC:TASK-BODY"       : { node ->
+                    write(node.text())
+                    writeln()
+                    true
+
+                },
+                "AC:LINK"            : { node ->
                     // <ac:link><ri:page ri:content-title=\"Nachricht - Example\" />
                     // <ac:link><ac:link-body>Example</ac:link-body></ac:link>
                     // <ac:link><ri:attachment ri:filename=\"Monitoring.xls\" /></ac:link>
@@ -164,7 +179,7 @@ class Confluence2MD extends ConfluenceParser implements Walker {
                     }
                     true
                 },
-                "BLOCKQUOTE": { node ->
+                "BLOCKQUOTE"         : { node ->
                     if (mode != Mode.Table) {
                         def needBlankLine = (mode != BlockQuote)
                         withMode(BlockQuote) {
@@ -177,7 +192,7 @@ class Confluence2MD extends ConfluenceParser implements Walker {
                     }
                     false
                 },
-                "AC:RICH-TEXT-BODY": { node ->
+                "AC:RICH-TEXT-BODY"  : { node ->
                     if (mode == Default) {
                         String text = intoString {
                             withMode(Panel) {
@@ -193,7 +208,7 @@ class Confluence2MD extends ConfluenceParser implements Walker {
                     }
                     false
                 },
-                "PRE": { node ->
+                "PRE"                : { node ->
                     if (mode == Default) {
                         String text = intoString {
                             def needBlankLine = (mode != BlockQuote)
@@ -277,8 +292,8 @@ class Confluence2MD extends ConfluenceParser implements Walker {
                     }
                     false
                 },
-                "AC:PARAMETER": { node -> true /* skip */ },
-                "TR": { node ->
+                "AC:PARAMETER"       : { node -> true /* skip */ },
+                "TR"                 : { node ->
                     table.rows << new Row()
                     walkThrough(node)
                     writeRaw("|\n")
@@ -287,34 +302,34 @@ class Confluence2MD extends ConfluenceParser implements Walker {
                     }
                     return true
                 },
-                "TD": { node ->
+                "TD"                 : { node ->
                     writeRaw("|")
                     table.row.cells << new Cell(node)
                     table.row.cell.render(this)
                     return true
                 },
-                "TH": { node ->
+                "TH"                 : { node ->
                     writeRaw("|")
                     table.row.cells << new Cell(node)
                     table.row.cell.render(this)
                     return true
                 },
-                "BR": { node ->
+                "BR"                 : { node ->
                     writeln()
                     return true
                 },
-                "S": { node -> // strikeout
+                "S"                  : { node -> // strikeout
                     writeRaw("~~")
                     def text = intoString { walkThrough(node) }
                     writeRaw(text.trim())
                     writeRaw("~~")
                     return true
                 },
-                "HR": { node ->
+                "HR"                 : { node ->
                     writeRaw("\n---\n")
                     return true
                 },
-                "AC:IMAGE": { node ->
+                "AC:IMAGE"           : { node ->
                     /*
                     <ac:image><ri:attachment ri:filename=\"Resequencer.png\" /></ac:image>
                      */
@@ -355,21 +370,21 @@ class Confluence2MD extends ConfluenceParser implements Walker {
                     writeRaw(")\n")
                     return true
                 },
-                "UL": { node ->
+                "UL"                 : { node ->
                     withList {
                         itemNumber = null
                         walkThrough(node)
                     }
                     return true
                 },
-                "OL": { node ->
+                "OL"                 : { node ->
                     withList {
                         itemNumber = 1
                         walkThrough(node)
                     }
                     return true
                 },
-                "LI": { node ->
+                "LI"                 : { node ->
                     //                def oldItemNumber = itemNumber
                     //                itemNumber = null
                     assertBlankLine()
@@ -383,7 +398,7 @@ class Confluence2MD extends ConfluenceParser implements Walker {
                     }
                     false
                 },
-                "TABLE": { node ->
+                "TABLE"              : { node ->
                     // we use pipe_tables: Pandoc says:
                     /* "The cells of pipe tables cannot contain block elements like paragraphs and lists,
                        and cannot span multiple lines." */
@@ -418,8 +433,8 @@ class Confluence2MD extends ConfluenceParser implements Walker {
                     }
                     return true
                 },
-                "TBODY": { node -> false /* ignore */ },
-                "SPAN": { node ->// ignore
+                "TBODY"              : { node -> false /* ignore */ },
+                "SPAN"               : { node ->// ignore
                     walkThrough(node)
                     if (written instanceof String) {  /* char(160) &nbsp; */
                         if (!written.endsWith(' ') && !written.endsWith("\u00A0")) {
@@ -428,7 +443,7 @@ class Confluence2MD extends ConfluenceParser implements Walker {
                     }
                     return true
                 },
-                "AC:EMOTICON": { node ->
+                "AC:EMOTICON"        : { node ->
                     def icon = node.attributes()["ac:name"]
                     switch (icon) {
                         case "minus":
@@ -472,8 +487,8 @@ class Confluence2MD extends ConfluenceParser implements Walker {
                     }
                     return true
                 },
-                "DIV": { node -> false /* ignore */ },
-                "AC:MACRO": { node -> // e.g. plantUML
+                "DIV"                : { node -> false /* ignore */ },
+                "AC:MACRO"           : { node -> // e.g. plantUML
                     def macro = node.attributes()['ac:name']
                     switch (macro) {
                         case "plantuml":   /* ac:title: not yet tested if tag name correct */
@@ -528,7 +543,8 @@ class Confluence2MD extends ConfluenceParser implements Walker {
         tagHandlers["U"] = handler  // underline: not yet supported. using italic
 
         handler = { node ->
-            if (strong) { // avoid duplication of ** because **** would not work, this can happen when <strong><em>... is nested
+            if (strong) {
+                // avoid duplication of ** because **** would not work, this can happen when <strong><em>... is nested
                 return false
             } else {
                 strong = true
@@ -570,7 +586,8 @@ class Confluence2MD extends ConfluenceParser implements Walker {
                 log("${depth} - Found page $each.id '$each.title'")
                 pageIdCache.put(each.title, each.id)
             } else {
-                log("${depth} - Found page $each.id '${each.title}', but header depth $effectiveLevel is too deep in the hierachy")
+                log(
+                        "${depth} - Found page $each.id '${each.title}', but header depth $effectiveLevel is too deep in the hierachy")
             }
         }
     }
@@ -739,8 +756,10 @@ class Confluence2MD extends ConfluenceParser implements Walker {
         }
     }
 
-    protected static final String[] SEARCH = ['_', '$', '*', '\\', '<', '#', "^[", "*", "`", "{", "}", "[", "]", ">", "#", "+", "-", ".", "!"] as String[]
-    protected static final String[] REPLACE = ['\\_', '\\$', '\\*', '\\\\', '\\<', '\\#', "^\\[", "\\*", "\\`", "\\{", "\\}", "\\[", "\\]", "\\>", "\\#", "\\+", "\\-", "\\.", "\\!"] as String[]
+    protected static
+    final String[] SEARCH = ['_', '$', '*', '\\', '<', '#', "^[", "*", "`", "{", "}", "[", "]", ">", "#", "+", "-", ".", "!"] as String[]
+    protected static
+    final String[] REPLACE = ['\\_', '\\$', '\\*', '\\\\', '\\<', '\\#', "^\\[", "\\*", "\\`", "\\{", "\\}", "\\[", "\\]", "\\>", "\\#", "\\+", "\\-", "\\.", "\\!"] as String[]
 
     protected String transform(String text) {
         // escape unwanted footnotes etc.
