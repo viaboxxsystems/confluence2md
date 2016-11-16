@@ -55,6 +55,7 @@ abstract class ConfluenceParser implements NodeHandler {
     protected boolean caching = true // file caching true or false
     protected Map pageIdCache = [:]  // key = page.title, value = page.id
     protected Map attachmentCache = [:] // key = page.id, value = attachments (jsonSlurper)
+    protected boolean gfm = false // GitHub flavoured markdown
 
     protected PlantUmlImageGenerator umlImageGenerator = new PlantUmlImageGenerator(this)
 
