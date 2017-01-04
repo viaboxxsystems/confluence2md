@@ -39,15 +39,34 @@ class Confluence2MDTest extends Specification {
                 "|\n" +
                 "\n"
     }
-
     def xmlPanel() {
         when:
+        c2md.gfm = false;
         c2md.parseBody('<h2>Body</h2><ac:structured-macro ac:name=\"code\"><ac:parameter ac:name=\"\">xml</ac:parameter>' +
                 '<ac:plain-text-body><![CDATA[<ExecSetup taskId=\"some unique id\">\n  <target>c:\\vtouch\\cortex\\downl' +
                 'oads\\PREUPD.CMD</target>\n</ExecSetup>\n]]></ac:plain-text-body></ac:structured-macro>')
         then:
         markdown() ==
                 "###Body###\n" +
+                "\n" +
+                "\n" +
+                "\n" +
+                "~~~~~~~\n" +
+                "<ExecSetup taskId=\"some unique id\">\n" +
+                "  <target>c:\\vtouch\\cortex\\downloads\\PREUPD.CMD</target>\n" +
+                "</ExecSetup>\n" +
+                "\n" +
+                "~~~~~~~\n"
+    }
+    def GFMPage() {
+        when:
+        c2md.gfm = true;
+        c2md.parseBody('<h2>Body</h2><ac:structured-macro ac:name=\"code\"><ac:parameter ac:name=\"\">xml</ac:parameter>' +
+                '<ac:plain-text-body><![CDATA[<ExecSetup taskId=\"some unique id\">\n  <target>c:\\vtouch\\cortex\\downl' +
+                'oads\\PREUPD.CMD</target>\n</ExecSetup>\n]]></ac:plain-text-body></ac:structured-macro>')
+        then:
+        markdown() ==
+                "### Body\n" +
                 "\n" +
                 "\n" +
                 "\n" +

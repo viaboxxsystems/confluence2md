@@ -110,6 +110,10 @@ class Confluence2MDArgsParser {
                     case "+RootPageTitle":
                         titleRootPage = Boolean.parseBoolean(args[++i])
                         break
+                    case "+gfm":
+                        log("Generating GFM format")
+                        gfm = true
+                        break
                 }
             }
             switch (format) {

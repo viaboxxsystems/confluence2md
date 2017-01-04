@@ -629,7 +629,7 @@ class Confluence2MD extends ConfluenceParser implements Walker {
         boolean isHeader = writeHeaderBeginTags(effectiveLevel)
         processor()
         writeHeaderEndTags(effectiveLevel)
-        if (ref && isHeader) writeRaw(" {#${ref}}")
+        if (ref && isHeader && !gfm)  writeRaw(" {#${ref}}")
         assertBlankLine()
     }
 
@@ -649,7 +649,11 @@ class Confluence2MD extends ConfluenceParser implements Walker {
     }
 
     protected boolean writeHeaderEndTags(int level) {
-        return writeHeaderTags(level)
+        if (gfm) {
+            return true;
+        } else {
+            return writeHeaderTags(level)
+        }
     }
 
     protected boolean writeHeaderTags(int level) {
@@ -658,6 +662,7 @@ class Confluence2MD extends ConfluenceParser implements Walker {
             return false
         } else {
             level.times { writeRaw('#') }
+            if (gfm) writeRaw(' ')
             return true
         }
     }

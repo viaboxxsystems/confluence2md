@@ -35,6 +35,7 @@ curl -u user:password https://viaboxx.atlassian.net/wiki/rest/api/content/340827
 	+H true/false true: document hierarchy used to generate page header format type (child document => h2 etc) (default: true)
 	+T true/false true: title transformation ON (cut everything before first -) (default: true)
   	+RootPageTitle true/false true: generate header for root page, false: omit header of root page (default: true)
+  	+gfm true/false: generate GitHub Flavored Markdown (default: false) 
 
 ## Examples ##
 
